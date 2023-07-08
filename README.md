@@ -1,6 +1,6 @@
 # Installation of Kubernetes the Kubeadm way on Mac M1
 
-This is setup is for Mac with M1, M2 Apple Silicon. Virtualbox doesn't support thus we use multipass to setup the nodes ubuntu.
+This is setup is for Mac with M1, M2 Apple Silicon. Virtualbox doesn't support thus we use multipass to setup the nodes ubuntu or use vagrant + VMware Fusion.
 
 ## Prerequisites
 
@@ -11,6 +11,7 @@ This is setup is for Mac with M1, M2 Apple Silicon. Virtualbox doesn't support t
     * If you have 16GB or more then two workers will be provisioned - `kubeworker01` and `kubeworker2`
 * You have homebrew installed on your mac.
 
+    ### Install using Multipass
 * Install [Multipass](https://multipass.run/docs/installing-on-macos)
   ```bash
   brew install --cask multipass
@@ -19,16 +20,37 @@ This is setup is for Mac with M1, M2 Apple Silicon. Virtualbox doesn't support t
   ```bash
   brew install jq
   ```
+    ### Install using Vagrant with ubuntu 20.04
+* Install [VMWare Fusion](https://www.vmware.com/products/fusion.html)
+  You can download VMWare Fusion free Edition for learning purpose. You need to register your account to get the License
+
+* Install [Vagrant](https://formulae.brew.sh/cask/vagrant)
+  ```bash
+  brew install --cask vagrant
+  vagrant --version
+  ```
+  Install VMWare Utility
+  ```bash
+  brew install vagrant-vmware-utility
+  ```
+  You need to setup vagrant plugin [vmware](https://developer.hashicorp.com/vagrant/docs/providers/vmware/installation)
+  ```bash
+  vagrant plugin install vagrant-vmware-desktop
+  vagrant plugin list
+  ```
 
 ## Installing the Cluster
 
 We must to use software that are compatible with `linux-arm64` ARM architecture.
 
-### Step 1 - Provision VM with Multipass
+### Step 1 - Provision VM with Multipass or Vagrant
+
+#### Using Multipass
 
 1. Run the VM deploy script from your Mac terminal
 
     ```bash
+    cd multipass
     ./deploy-vm.sh
     ```
 
@@ -50,6 +72,25 @@ We must to use software that are compatible with `linux-arm64` ARM architecture.
 
     In the following instructions when it says "connect to" any of the VMs, it means use the `multipass shell` command as above.
 
+#### Using Vagrant
+1. Run and Deploy the ubuntu instances.
+    ```bash
+    cd vagrant
+    vagrant up
+    vagrant status
+    ```
+
+2. Open three Terminal because we setup 3 nodes, and type following commands for each terminal
+   ```bash
+    # Terminal 1
+    vagrant ssh kubemaster
+
+    # Terminal 2
+    vagrant ssh kubenode01
+
+    # Terminal 3
+    vagrant ssh kubenode02
+   ```
 ### Step 2 - Set up OS Prerequisites
 
 Connect to each VM, this instruction is from [here](https://kubernetes.io/docs/setup/production-environment/container-runtimes/), and run the following command:
@@ -228,6 +269,7 @@ The instruction you can follow [here](https://kubernetes.io/docs/setup/productio
 
 ## Notes
 
+### Delete VM on Multipass
 1. Deleting the VMs
 
     ```
@@ -259,7 +301,7 @@ The instruction you can follow [here](https://kubernetes.io/docs/setup/productio
     multipass list
     ```
 
-1.  Multipass allocates IP addresses from the Mac's DHCP server to assign to VMs. When the VMs are deleted, it does not release them. If you build and tear down this a few times, you will run out of addresses on the network used for this purpose. Reclaiming them is a manaul operation. To do this, you must remove the spent addresses from the file `/var/db/dhcpd_leases` This file looks like this:
+1.  Multipass allocates IP addresses from the Mac's DHCP server to assign to VMs. When the VMs are deleted, it does not release them. If you build and tear down this a few times, you will run out of addresses on the network used for this purpose. Reclaiming them is a manual operation. To do this, you must remove the spent addresses from the file `/var/db/dhcpd_leases` This file looks like this:
 
     ```json
     {
@@ -283,3 +325,9 @@ The instruction you can follow [here](https://kubernetes.io/docs/setup/productio
     ```
     sudo vi /var/db/dhcpd_leases
     ```
+
+### Delete VM on Vagrant
+
+```
+vagrant destroy kubemaster kubenode01 kubenode02
+```
