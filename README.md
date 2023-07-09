@@ -202,6 +202,21 @@ The instruction you can follow [here](https://kubernetes.io/docs/setup/productio
     ```bash
     sudo crictl config runtime-endpoint unix:///var/run/containerd/containerd.sock
     ```
+1. Before you initialize kubeadm, make sure you turn off the swap. [You MUST disable swap in order for the kubelet to work properly.](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#before-you-begin)
+   
+   Check the swap status
+   ```bash
+   sudo swapon --show
+   ```
+   or
+   ```bash
+    sudo free -h
+   ```
+
+   If swap exists you must disable the swap before initialization kubeadm.
+   ```bash
+    sudo swapoff -a
+   ```
 
 ### Step 5 - Provisioning the Kubernetes Cluster
 
