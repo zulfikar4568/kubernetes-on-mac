@@ -98,25 +98,25 @@ Connect to each VM, this instruction is from [here](https://kubernetes.io/docs/s
 1. Execute the following commands in each VM terminal
 
     ```bash
-    # Load required kernel modules
-    sudo modprobe overlay
-    sudo modprobe br_netfilter
-
-    # Persist modules between restarts
+    # This will instruct the server to load overlay and br_netfilter kernel module on startup, every time server startup those kernel module will loaded and will required by containerd
     cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
     overlay
     br_netfilter
-    EOF
+   EOF
 
-    # Set required networking parameters
-    cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
-    net.bridge.bridge-nf-call-iptables  = 1
-    net.bridge.bridge-nf-call-ip6tables = 1
-    net.ipv4.ip_forward                 = 1
-    EOF
+   # We need to loaded this module immediately, without restart the server
+   sudo modprobe overlay
+   sudo modprobe br_netfilter
 
-    # Apply sysctl params without reboot
-    sudo sysctl --system
+   # Create file k8s.conf, this is needed for kubernetes networking
+   cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+   net.bridge.bridge-nf-call-iptables  = 1
+   net.bridge.bridge-nf-call-ip6tables = 1
+   net.ipv4.ip_forward                 = 1
+   EOF
+
+   # Apply sysctl params without reboot
+   sudo sysctl --system
     ```
   
 ### Step 3 - Set up Container Runtime (containerd)
